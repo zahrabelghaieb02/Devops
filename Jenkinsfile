@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         REGISTRY = "docker.io"          // Ton registre (ex: Docker Hub)
-        IMAGE_NAME = "ahmedallaya/devops" // Nom de ton image
+        IMAGE_NAME = "belghaieb/devops" // Nom de ton image
         IMAGE_TAG = "latest"            // Tag de l'image
         DOCKER_CREDENTIALS = 'docker-hub-credentials' // ID des credentials Jenkins
     }
