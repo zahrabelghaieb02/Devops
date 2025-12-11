@@ -2,15 +2,15 @@ pipeline {
     agent any
 
     environment {
-        REGISTRY = "docker.io"          // Ton registre (ex: Docker Hub)
-        IMAGE_NAME = "belghaieb/devops" // Nom de ton image
-        IMAGE_TAG = "latest"            // Tag de l'image
-        DOCKER_CREDENTIALS = 'docker-hub-credentials' // ID des credentials Jenkins
+        REGISTRY = "docker.io"                 // Ton registre (ex: Docker Hub)
+        IMAGE_NAME = "belghaieb/devops"        // Nom de ton image Docker
+        IMAGE_TAG = "latest"                   // Tag de l'image
+        DOCKER_CREDENTIALS = 'docker-hub-credentials' // ID des credentials Jenkins pour Docker
     }
 
     triggers {
-        // Le webhook GitHub déclenche déjà, mais on met un fallback
-        pollSCM('* * * * *') // Vérifie chaque minute au cas où
+        // Webhook GitHub ou fallback avec pollSCM
+        pollSCM('* * * * *') // Vérifie chaque minute
     }
 
     stages {
@@ -31,30 +31,26 @@ pipeline {
 
         stage('Build Project') {
             steps {
-                echo "Reconstruction du projet..."
-                sh ' mvn clean package -DskipTests'
-                    
-                       
-                    
-
+                echo "Reconstruction du projet Maven..."
+                sh 'mvn clean package -DskipTests'
             }
         }
 
-      /* ----------------------------- */
-        /*     STAGE SONAR + TOKEN       */
+        /* ----------------------------- */
+        /*     STAGE SONARQUBE           */
         /* ----------------------------- */
         stage('MVN SONARQUBE') {
             steps {
                 withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
                     sh """
                         mvn sonar:sonar \
-                          -Dsonar.login=$SONAR_TOKEN \
-                          -Dsonar.host.url=http://localhost:9000
+                          -Dsonar.login=${SONAR_TOKEN} \
+                          -Dsonar.host.url=http://192.168.x.x:9000 \
+                          -Dsonar.projectKey=myproject
                     """
                 }
             }
         }
-        /* ----------------------------- */
 
         stage('Build Docker Image') {
             steps {
@@ -67,7 +63,7 @@ pipeline {
 
         stage('Push Docker Image') {
             steps {
-                echo "Connexion & push sur le registre..."
+                echo "Connexion & push sur le registre Docker..."
                 withCredentials([usernamePassword(credentialsId: DOCKER_CREDENTIALS,
                                                  usernameVariable: 'USER',
                                                  passwordVariable: 'PASS')]) {
