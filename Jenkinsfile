@@ -40,6 +40,22 @@ pipeline {
             }
         }
 
+      /* ----------------------------- */
+        /*     STAGE SONAR + TOKEN       */
+        /* ----------------------------- */
+        stage('MVN SONARQUBE') {
+            steps {
+                withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
+                    sh """
+                        mvn sonar:sonar \
+                          -Dsonar.login=$SONAR_TOKEN \
+                          -Dsonar.host.url=http://localhost:9000
+                    """
+                }
+            }
+        }
+        /* ----------------------------- */
+
         stage('Build Docker Image') {
             steps {
                 echo "Construction de l’image Docker..."
